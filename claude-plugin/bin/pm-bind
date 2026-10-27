@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+"""What the Product Map plugin knows about the folder a session runs in.
+
+Everything that matters is kept by the server (``connect_workspace`` remembers
+which folder is which project; ``run_agent`` remembers which session is which
+chat). This script only gathers the facts a session needs to make those calls
+- the repository root, its remotes, a fingerprint of the folder, the
+``.productmap/productmap.json`` marker - and keeps a small cache of the last
+answer in ``~/.claude/productmap/bindings.json`` so a hook can say "this
+folder is project X" without a network call. Losing the cache costs nothing
+but one ``connect_workspace`` call. Set ``PRODUCTMAP_PLUGIN_DATA`` to move it.
+
+Subcommands:
+  context --session ID [--cwd DIR]   the facts a skill needs, one per line
+  fingerprint [ROOT]                 sha256 of "<hostname>:<repository root>"
+  read-marker [ROOT]                 the marker file as JSON ({} when none)
+  write-marker ROOT --json JSON      write the marker and cache the project
+  pin-project ROOT --project P [--name N] [--knowledge-root .productmap] [--storage-mode M]
+  hook                               reads a Claude Code hook payload on stdin, prints hook output
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import socket
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+MARKER_RELATIVE_PATH = os.path.join(".productmap", "productmap.json")
+CLIENT = "claude-code"
+
+
+def state_path() -> Path:
+    base = os.environ.get("PRODUCTMAP_PLUGIN_DATA") or os.path.join(os.path.expanduser("~"), ".claude", "productmap")
+    return Path(base) / "bindings.json"
+
+
+def load() -> dict:
+    try:
+        data = json.loads(state_path().read_text())
+    except (OSError, ValueError):
+        data = {}
+    data.setdefault("projects", {})
+    return data
+
+
+def save(data: dict) -> None:
+    path = state_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, indent=2, sort_keys=True))
+    os.replace(tmp, path)
+
+
+def git(args: list[str], cwd: str | None) -> str:
+    try:
+        out = subprocess.run(["git", *args], cwd=cwd or None, capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return out.stdout.strip() if out.returncode == 0 else ""
+
+
+def repo_root(cwd: str | None) -> str:
+    return git(["rev-parse", "--show-toplevel"], cwd)
+
+
+def remotes(cwd: str | None) -> list[str]:
+    urls = []
+    for line in git(["remote", "-v"], cwd).splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] not in urls:
+            urls.append(parts[1])
+    return urls
+
+
+def fingerprint(root: str) -> str:
+    if not root:
+        return ""
+    return hashlib.sha256(f"{socket.gethostname()}:{os.path.abspath(root)}".encode("utf-8")).hexdigest()
+
+
+def read_marker(root: str) -> dict:
+    if not root:
+        return {}
+    try:
+        data = json.loads(Path(root, MARKER_RELATIVE_PATH).read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def facts(cwd: str | None, session_id: str = "") -> dict:
+    root = repo_root(cwd)
+    folder = root or os.path.abspath(cwd or os.getcwd())
+    marker = read_marker(folder)
+    cached = load()["projects"].get(folder, {})
+    knowledge_root = marker.get("knowledge_root_path") or cached.get("knowledge_root_path") or ".productmap"
+    return {
+        "client": CLIENT,
+        "session_id": session_id,
+        "cwd": folder,
+        "repository_root": root,
+        "remotes": remotes(cwd) if root else [],
+        "folder_fingerprint": fingerprint(folder),
+        "marker": marker,
+        "cached_project": cached,
+        "knowledge_root_path": knowledge_root,
+        "knowledge_folder_present": os.path.isdir(os.path.join(folder, knowledge_root)),
+    }
+
+
+# --- what a skill prints into its own context -------------------------------
+
+
+def cmd_context(args) -> int:
+    f = facts(args.cwd or os.getcwd(), args.session or "")
+    lines = [
+        f"client: {f['client']}",
+        f"client_session_id: {f['session_id'] or '(unknown - pass the client_session_id a run_agent result returns)'}",
+        f"cwd: {f['cwd']}",
+        f"repository_root: {f['repository_root'] or '(not inside a git repository)'}",
+        f"remotes: {json.dumps(f['remotes'])}",
+        f"folder_fingerprint: {f['folder_fingerprint']}",
+        f"marker: {json.dumps(f['marker']) if f['marker'] else 'none (no .productmap/productmap.json yet)'}",
+        f"cached_project: {json.dumps(f['cached_project']) if f['cached_project'] else 'none (call connect_workspace)'}",
+        f"knowledge_folder: {f['knowledge_root_path']} ({'present' if f['knowledge_folder_present'] else 'missing'})",
+    ]
+    print("\n".join(lines))
+    return 0
+
+
+def cmd_fingerprint(args) -> int:
+    root = repo_root(args.root or os.getcwd()) or os.path.abspath(args.root or os.getcwd())
+    print(fingerprint(root))
+    return 0
+
+
+def cmd_read_marker(args) -> int:
+    root = repo_root(args.root or os.getcwd()) or os.path.abspath(args.root or os.getcwd())
+    print(json.dumps(read_marker(root)))
+    return 0
+
+
+def cmd_pin_project(args) -> int:
+    data = load()
+    data["projects"][os.path.abspath(args.root)] = {
+        "project_id": args.project,
+        "name": args.name or "",
+        "knowledge_root_path": args.knowledge_root or ".productmap",
+        "storage_mode": args.storage_mode or "",
+        "pinned_at": now(),
+    }
+    save(data)
+    print(json.dumps(data["projects"][os.path.abspath(args.root)]))
+    return 0
+
+
+def cmd_write_marker(args) -> int:
+    try:
+        marker = json.loads(args.json)
+    except ValueError:
+        print("write-marker: --json is not valid JSON", file=sys.stderr)
+        return 65
+    if not isinstance(marker, dict) or not marker.get("project_id"):
+        print("write-marker: the marker needs a project_id", file=sys.stderr)
+        return 65
+    path = Path(os.path.abspath(args.root), MARKER_RELATIVE_PATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(marker, indent=2, ensure_ascii=False) + "\n")
+    data = load()
+    data["projects"][os.path.abspath(args.root)] = {
+        "project_id": marker["project_id"],
+        "name": marker.get("project_name", ""),
+        "knowledge_root_path": marker.get("knowledge_root_path") or ".productmap",
+        "storage_mode": "",
+        "pinned_at": now(),
+    }
+    save(data)
+    print(str(path))
+    return 0
+
+
+# --- hooks ----------------------------------------------------------------------
+
+SESSION_CONTEXT = """Product Map plugin: this session can run Product Map's product-management agents as commands - \
+`/pm:<slug> <request>` (for example `/pm:product-strategy-roadmap`, `/pm:prd-specification`); \
+`/pm:agents` lists them, `/pm:connect` binds this folder to its project, \
+`/pm:context` reviews proposed knowledge changes. Everything else you answer yourself. \
+Facts for those calls: client="claude-code", client_session_id="{session_id}", cwd="{cwd}", \
+remotes={remotes}, folder_fingerprint="{fingerprint}", marker={marker}, cached_project={cached}. \
+Knowledge folder `{knowledge_root}` is {knowledge_state}."""
+
+
+def cmd_hook(_args) -> int:
+    try:
+        payload = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        return 0
+    event = payload.get("hook_event_name") or ""
+    if event != "SessionStart":
+        return 0
+    f = facts(payload.get("cwd") or os.getcwd(), payload.get("session_id") or "")
+    marker = {"project_id": f["marker"].get("project_id"), "project_name": f["marker"].get("project_name")} if f["marker"] else None
+    cached = {"project_id": f["cached_project"].get("project_id"), "name": f["cached_project"].get("name")} if f["cached_project"] else None
+    context = SESSION_CONTEXT.format(
+        session_id=f["session_id"],
+        cwd=f["cwd"],
+        remotes=json.dumps(f["remotes"]),
+        fingerprint=f["folder_fingerprint"],
+        marker=json.dumps(marker) if marker else "none",
+        cached=json.dumps(cached) if cached else "none",
+        knowledge_root=f["knowledge_root_path"],
+        knowledge_state="present" if f["knowledge_folder_present"] else "missing",
+    )
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}))
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="pm-bind", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("context")
+    p.add_argument("--session", default="")
+    p.add_argument("--cwd", default="")
+    p.set_defaults(fn=cmd_context)
+
+    p = sub.add_parser("fingerprint")
+    p.add_argument("root", nargs="?", default="")
+    p.set_defaults(fn=cmd_fingerprint)
+
+    p = sub.add_parser("read-marker")
+    p.add_argument("root", nargs="?", default="")
+    p.set_defaults(fn=cmd_read_marker)
+
+    p = sub.add_parser("write-marker")
+    p.add_argument("root")
+    p.add_argument("--json", required=True)
+    p.set_defaults(fn=cmd_write_marker)
+
+    p = sub.add_parser("pin-project")
+    p.add_argument("root")
+    p.add_argument("--project", required=True)
+    p.add_argument("--name", default="")
+    p.add_argument("--knowledge-root", dest="knowledge_root", default=".productmap")
+    p.add_argument("--storage-mode", dest="storage_mode", default="")
+    p.set_defaults(fn=cmd_pin_project)
+
+    p = sub.add_parser("hook")
+    p.set_defaults(fn=cmd_hook)
+
+    args = parser.parse_args(argv)
+    return args.fn(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

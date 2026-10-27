@@ -1,0 +1,6 @@
+{
+  "productmap": {
+    "type": "http",
+    "url": "https://app.productmap.io/platform-api/mcp"
+  }
+}

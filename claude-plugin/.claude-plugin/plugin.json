@@ -1,0 +1,26 @@
+{
+  "name": "pm",
+  "displayName": "Product Map",
+  "version": "1.0.0",
+  "description": "Product Map's product-management agents as slash commands in Claude Code: /pm:product-strategy-roadmap, /pm:prd-specification and friends answer with your project's knowledge base as context, inside your normal coding session, and propose knowledge changes you review like code.",
+  "author": {
+    "name": "Product Map",
+    "email": "hey@productmap.io",
+    "url": "https://www.productmap.io"
+  },
+  "homepage": "https://www.productmap.io",
+  "privacyPolicyUrl": "https://www.productmap.io/privacy-policy",
+  "termsOfServiceUrl": "https://www.productmap.io/terms-of-use",
+  "repository": "https://github.com/productmap-ai/product-map-for-claude-plugin",
+  "license": "Proprietary",
+  "icon": "./assets/product-map.png",
+  "keywords": [
+    "product-management",
+    "productmap",
+    "prd",
+    "strategy",
+    "discovery",
+    "okr",
+    "mcp"
+  ]
+}
