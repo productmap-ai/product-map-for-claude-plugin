@@ -1,12 +1,12 @@
 ---
 description: Review the knowledge changes Product Map agents have proposed for this folder's project and accept or discard each one - into the .productmap/ files and a commit for a git-synced project, or on Product Map for a cloud-stored one.
 argument-hint: ""
-allowed-tools: Read, Edit(.productmap/**), Bash(python3 "${CLAUDE_SKILL_DIR}/../../bin/pm-bind" *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git rev-parse *), Bash(git checkout -- *), Bash(shasum -a 256 *), Bash(sha256sum *), Bash(mkdir -p *), mcp__plugin_pm_productmap__*
+allowed-tools: Read, Edit(.productmap/**), Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git rev-parse *), Bash(git checkout -- *), Bash(shasum -a 256 *), Bash(sha256sum *), Bash(mkdir -p *), mcp__plugin_pm_productmap__*
 ---
 
 # Review proposed Product Map context changes
 
-!`python3 "${CLAUDE_SKILL_DIR}/../../bin/pm-bind" context --session "${CLAUDE_SESSION_ID}"`
+!`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --session "${CLAUDE_SESSION_ID}"`
 
 - Find the project id: `cached_project` or `marker` above; otherwise `connect_workspace` with the facts above.
 - `list_context_proposals(project_id)`. If `proposals_enabled` is false, explain the `reason` and stop. If the

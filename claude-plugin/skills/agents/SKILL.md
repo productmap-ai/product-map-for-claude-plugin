@@ -1,12 +1,12 @@
 ---
 description: List the Product Map agents available for this folder's project, with what each one is for and a starter request, so the user can pick a /pm:<slug> command.
 argument-hint: ""
-allowed-tools: Bash(python3 "${CLAUDE_SKILL_DIR}/../../bin/pm-bind" context *), mcp__plugin_pm_productmap__*
+allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context *), mcp__plugin_pm_productmap__*
 ---
 
 # Product Map agents for this project
 
-!`python3 "${CLAUDE_SKILL_DIR}/../../bin/pm-bind" context --session "${CLAUDE_SESSION_ID}"`
+!`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --session "${CLAUDE_SESSION_ID}"`
 
 - Find the project id: `cached_project` or `marker` above; otherwise call `connect_workspace` with the facts
   above (and follow its `choose` flow if it asks).

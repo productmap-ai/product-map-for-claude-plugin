@@ -65,7 +65,7 @@ strategy agent whether ..." and it will use it.
   command for yet can be run through that prompt.
 - `hooks/hooks.json`: a `SessionStart` hook that tells a session the facts the commands need - its session id,
   the folder, its remotes and fingerprint, the marker, the cached project - in under a kilobyte.
-- `bin/pm-bind`: gathers those facts, writes the marker, and keeps a small cache in
+- `scripts/pm-bind`: gathers those facts, writes the marker, and keeps a small cache in
   `~/.claude/productmap/bindings.json`. The server holds the real bindings; the cache only saves a call.
 - `agents/productmap-advisor.md`: the background subagent.
 
