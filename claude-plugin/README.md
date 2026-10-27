@@ -68,7 +68,6 @@ strategy agent whether ..." and it will use it.
 - `bin/pm-bind`: gathers those facts, writes the marker, and keeps a small cache in
   `~/.claude/productmap/bindings.json`. The server holds the real bindings; the cache only saves a call.
 - `agents/productmap-advisor.md`: the background subagent.
-- `assets/product-map.png`: the plugin icon.
 
 ## Requirements
 
