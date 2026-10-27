@@ -9,6 +9,8 @@
     "url": "https://www.productmap.io"
   },
   "homepage": "https://www.productmap.io",
+  "documentationUrl": "https://www.productmap.io/resources",
+  "supportUrl": "https://discord.gg/DKHX4Wf9rs",
   "privacyPolicyUrl": "https://www.productmap.io/privacy-policy",
   "termsOfServiceUrl": "https://www.productmap.io/terms-of-use",
   "repository": "https://github.com/productmap-ai/product-map-for-claude-plugin",
