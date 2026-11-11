@@ -6,7 +6,10 @@ allowed-tools: Read, Edit(.productmap/**), Bash(python3 ${CLAUDE_PLUGIN_ROOT}/sc
 
 # Review proposed Product Map context changes
 
-!`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --session "${CLAUDE_SESSION_ID}"`
+**Facts.** Use the Product Map facts from the note added at session start: client_session_id, cwd,
+remotes, folder_fingerprint, marker, cached_project and the knowledge folder. If that note is missing, run
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --cwd .` and use its output. Where you cannot run
+commands, call `connect_workspace` with `client` and the facts you have, and follow its `choose` flow.
 
 - Find the project id: `cached_project` or `marker` above; otherwise `connect_workspace` with the facts above.
 - `list_context_proposals(project_id)`. If `proposals_enabled` is false, explain the `reason` and stop. If the

@@ -9,7 +9,10 @@ allowed-tools: Read, Edit(.productmap/**), Bash(python3 ${CLAUDE_PLUGIN_ROOT}/sc
 
 Agent id: `product_prd` (the `/pm:prd-specification` command). The user's request: `$ARGUMENTS` (may be empty).
 
-!`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --session "${CLAUDE_SESSION_ID}"`
+**Facts.** Use the Product Map facts from the note added at session start: client_session_id, cwd,
+remotes, folder_fingerprint, marker, cached_project and the knowledge folder. If that note is missing, run
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --cwd .` and use its output. Where you cannot run
+commands, call `connect_workspace` with `client` and the facts you have, and follow its `choose` flow.
 
 You stay the user's coding assistant before and after; the agent answers this one request with the project's
 context in view.

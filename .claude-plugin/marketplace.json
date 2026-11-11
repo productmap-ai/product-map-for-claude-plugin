@@ -3,14 +3,14 @@
   "owner": { "name": "Product Map", "email": "hey@productmap.io" },
   "metadata": {
     "description": "Product Map agents for Claude Code",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "plugins": [
     {
       "name": "pm",
       "source": "./claude-plugin",
       "description": "Product Map's product-management agents as slash commands in your coding session, with your project's knowledge base as context.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "category": "productivity",
       "tags": ["product-management", "mcp", "prd", "strategy", "discovery"]
     }

@@ -9,7 +9,10 @@ allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind *), mcp__plugi
 
 Project id given by the user: `$1` (may be empty).
 
-!`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --session "${CLAUDE_SESSION_ID}"`
+**Facts.** Use the Product Map facts from the note added at session start: client_session_id, cwd,
+remotes, folder_fingerprint, marker, cached_project and the knowledge folder. If that note is missing, run
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --cwd .` and use its output. Where you cannot run
+commands, call `connect_workspace` with `client` and the facts you have, and follow its `choose` flow.
 
 - Call `connect_workspace(remote_urls=<remotes>, marker=<marker, or omit when none>, cwd=<cwd>,
   folder_fingerprint=<folder_fingerprint>, client="claude-code", client_session_id=<client_session_id>,
