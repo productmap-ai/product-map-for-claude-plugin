@@ -2,7 +2,7 @@
 """What the Product Map plugin knows about the folder a session runs in.
 
 Everything that matters is kept by the server (``connect_workspace`` remembers
-which folder is which project; ``run_agent`` remembers which session is which
+which folder is which project; the agent tools (``run_<agent>``) remember which session is which
 chat). This script only gathers the facts a session needs to make those calls
 - the repository root, its remotes, a fingerprint of the folder, the
 ``.productmap/productmap.json`` marker - and keeps a small cache of the last
@@ -123,7 +123,7 @@ def cmd_context(args) -> int:
     f = facts(args.cwd or os.getcwd(), args.session or "")
     lines = [
         f"client: {f['client']}",
-        f"client_session_id: {f['session_id'] or '(unknown - pass the client_session_id a run_agent result returns)'}",
+        f"client_session_id: {f['session_id'] or '(unknown - pass the client_session_id an agent result returns)'}",
         f"cwd: {f['cwd']}",
         f"repository_root: {f['repository_root'] or '(not inside a git repository)'}",
         f"remotes: {json.dumps(f['remotes'])}",

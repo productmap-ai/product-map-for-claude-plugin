@@ -17,4 +17,5 @@ context, inside your normal coding session.
 Full documentation: [claude-plugin/README.md](claude-plugin/README.md). Website: https://www.productmap.io.
 Support: hey@productmap.io.
 
-This repository is published from the Product Map monorepo; changes land here on each plugin release.
+This repository is the plugin's source: edit it here. The per-agent skills are generated from the Product Map
+backend's agent catalogue by a script in the Product Map monorepo, which writes into this checkout.
