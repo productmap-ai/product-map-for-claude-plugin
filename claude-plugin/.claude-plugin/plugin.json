@@ -1,7 +1,7 @@
 {
   "name": "pm",
   "displayName": "Product Map",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Product Map's product-management agents as slash commands in Claude Code: /pm:product-strategy-roadmap, /pm:prd-specification and friends answer with your project's knowledge base as context, inside your normal coding session, and propose knowledge changes you review like code.",
   "author": {
     "name": "Product Map",

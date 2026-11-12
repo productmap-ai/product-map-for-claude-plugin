@@ -1,7 +1,7 @@
 ---
 description: List the Product Map agents available for this folder's project, with what each one is for and a starter request, so the user can pick a /pm:<slug> command.
 argument-hint: ""
-allowed-tools: Read, Bash(git remote -v), Bash(git rev-parse *), mcp__plugin_pm_productmap__*
+allowed-tools: Read, Glob, Grep, LS
 ---
 
 # Product Map agents for this project

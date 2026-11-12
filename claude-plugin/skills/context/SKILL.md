@@ -1,7 +1,7 @@
 ---
 description: Review the knowledge changes Product Map agents have proposed for this folder's project and accept or discard each one - into the .productmap/ files and a commit for a git-synced project, or on Product Map for a cloud-stored one.
 argument-hint: ""
-allowed-tools: Read, Edit(.productmap/**), Write(.productmap/productmap.json), Bash(git remote -v), Bash(git rev-parse *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(shasum -a 256 *), Bash(sha256sum *), Bash(mkdir -p *), mcp__plugin_pm_productmap__*
+allowed-tools: Read, Glob, Grep, LS
 ---
 
 # Review proposed Product Map context changes

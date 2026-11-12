@@ -69,4 +69,8 @@ strategy agent whether ..." and it will use it.
 - Claude Code with plugin support, `git`.
 - A Product Map account. A project is picked or created on first use; a git repository is optional.
 
+The commands pre-approve only the Read, Glob, Grep and LS tools. The first time a command runs `git remote -v`,
+`git rev-parse`, a Product Map connector tool, or writes `.productmap/productmap.json`, Claude Code asks you to
+allow it, as it does for any other tool; allow once per session or add the pattern to your own permissions.
+
 Support: hey@productmap.io. Privacy policy and terms: productmap.io.

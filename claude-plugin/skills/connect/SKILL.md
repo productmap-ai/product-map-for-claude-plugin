@@ -2,7 +2,7 @@
 description: Connect this folder to its Product Map project. Resolves it from the repository's marker file, git remotes, or an earlier connection; otherwise lets the user pick or create one. Remembers the answer on Product Map and writes .productmap/productmap.json so every clone resolves offline.
 argument-hint: "[project-id]"
 disable-model-invocation: true
-allowed-tools: Read, Write(.productmap/productmap.json), Bash(git remote -v), Bash(git rev-parse *), mcp__plugin_pm_productmap__*
+allowed-tools: Read, Glob, Grep, LS
 ---
 
 # Connect this folder to a Product Map project
