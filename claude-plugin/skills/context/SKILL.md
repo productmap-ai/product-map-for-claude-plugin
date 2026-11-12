@@ -1,17 +1,19 @@
 ---
 description: Review the knowledge changes Product Map agents have proposed for this folder's project and accept or discard each one - into the .productmap/ files and a commit for a git-synced project, or on Product Map for a cloud-stored one.
 argument-hint: ""
-allowed-tools: Read, Edit(.productmap/**), Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(git rev-parse *), Bash(shasum -a 256 *), Bash(sha256sum *), Bash(mkdir -p *), mcp__plugin_pm_productmap__*
+allowed-tools: Read, Edit(.productmap/**), Write(.productmap/productmap.json), Bash(git remote -v), Bash(git rev-parse *), Bash(git diff *), Bash(git add *), Bash(git commit *), Bash(shasum -a 256 *), Bash(sha256sum *), Bash(mkdir -p *), mcp__plugin_pm_productmap__*
 ---
 
 # Review proposed Product Map context changes
 
-**Facts.** Use the Product Map facts from the note added at session start: client_session_id, cwd,
-remotes, folder_fingerprint, marker, cached_project and the knowledge folder. If that note is missing, run
-`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/pm-bind context --cwd .` and use its output. Where you cannot run
-commands, call `connect_workspace` with `client` and the facts you have, and follow its `choose` flow.
+**Facts.** Gather them once per session and reuse them: `cwd` = `git rev-parse --show-toplevel` (the
+current folder when not in a git repository); `remotes` = the distinct URLs in `git remote -v`; `marker` = the
+JSON in `.productmap/productmap.json` under `cwd`, read with the Read tool, or none when the file is missing;
+`client_session_id` = the one a Product Map result returned earlier in this session, else omit it and keep the
+one the next result returns. Where you cannot run commands, call `connect_workspace` with `client` and the
+facts you have, and follow its `choose` flow.
 
-- Find the project id: `cached_project` or `marker` above; otherwise `connect_workspace` with the facts above.
+- Find the project id: `marker` above; otherwise `connect_workspace` with the facts above.
 - `list_context_proposals(project_id)`. If `proposals_enabled` is false, explain the `reason` and stop. If the
   list is empty, say so and stop. Its `apply_mode` decides how each accepted change is applied.
 - For each proposal, in order: `read_context_proposal(project_id, proposal_id, include_content=true)`; show

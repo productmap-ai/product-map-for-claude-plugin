@@ -45,9 +45,8 @@ at the repository root), or `claude --plugin-dir /path/to/product-map-for-claude
 
 ### Connecting a folder
 
-A folder is connected once. Product Map remembers it by the repository's git remotes and a fingerprint of the
-folder, and Claude writes `.productmap/productmap.json` naming the project, so every clone and worktree
-resolves without a question. The platform writes the same file when it publishes a project's context to git.
+A folder is connected once. Product Map remembers it by the repository's git remotes, and Claude writes
+`.productmap/productmap.json` naming the project, so every clone and worktree resolves without a question. The platform writes the same file when it publishes a project's context to git.
 
 ### From a coding task
 
@@ -63,15 +62,11 @@ strategy agent whether ..." and it will use it.
   `agents` and `context` are hand-written. The agent text is the same protocol the connector serves as its
   `agent` MCP prompt, so the connector alone gives a near-identical experience, and an agent the plugin has no
   command for yet can be run through that prompt.
-- `hooks/hooks.json`: a `SessionStart` hook that tells a session the facts the commands need - its session id,
-  the folder, its remotes and fingerprint, the marker, the cached project - in under a kilobyte.
-- `scripts/pm-bind`: gathers those facts, writes the marker, and keeps a small cache in
-  `~/.claude/productmap/bindings.json`. The server holds the real bindings; the cache only saves a call.
 - `agents/productmap-advisor.md`: the background subagent.
 
 ## Requirements
 
-- Claude Code with plugin support, `git`, `python3`.
+- Claude Code with plugin support, `git`.
 - A Product Map account. A project is picked or created on first use; a git repository is optional.
 
 Support: hey@productmap.io. Privacy policy and terms: productmap.io.
